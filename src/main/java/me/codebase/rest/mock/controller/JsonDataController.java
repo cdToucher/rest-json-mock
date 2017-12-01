@@ -25,7 +25,6 @@ import java.nio.charset.Charset;
 /**
  * Created by chendong on 2017/11/30.
  */
-@Lazy
 @DependsOn("dispatchRouting")
 @Component("controller")
 @Description("support json data to different url")
@@ -38,16 +37,21 @@ public class JsonDataController {
     @RequestMapping(path = Patterns.testPath, method = {RequestMethod.GET}
             , produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String test() {
-        return "Hello this is a test!";
+        return "Hello, this is a test!";
     }
 
     @RequestMapping(path = Patterns.interceptorPath, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public String doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String path = request.getAttribute(Patterns.redirectedURI).toString();
-        return getJsonData(path);
+        return getJsonData(request.getAttribute(Patterns.redirectedURI).toString());
     }
 
+    /**
+     * find mappered json
+     * @param path url path
+     * @return json data
+     * @throws IOException open file exception
+     */
     private String getJsonData(String path) throws IOException {
         Mapper mapper = configFactory.get(path);
         if (mapper == null)
