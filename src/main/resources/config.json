@@ -1,0 +1,15 @@
+{
+  "filter": "/v1/**",
+  "mappers": [
+    {
+      "path": "/v1/server/time",
+      "method": "get",
+      "json": "1.json"
+    },
+    {
+      "path": "/v1/server/time",
+      "method": "get",
+      "json": "1.json"
+    }
+  ]
+}
