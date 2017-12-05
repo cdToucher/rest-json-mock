@@ -1,14 +1,15 @@
 package me.codebase.rest.mock.interceptor;
 
-import me.codebase.rest.mock.config.ConfigFactory;
-import me.codebase.rest.mock.constant.Patterns;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
+import org.springframework.web.servlet.mvc.ParameterizableViewController;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.servlet.view.InternalResourceView;
+import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
-import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by chendong on 2017/4/20.
@@ -16,39 +17,48 @@ import javax.annotation.Resource;
  * 静态资源 获取配置
  * <p>
  * WebMvcConfigurerAdapter 中存在 一些好用 adepter method
+ * <p>
+ * if not use springboot configuration use this instead
  */
-@Component
-public class DispatchRouting extends WebMvcConfigurerAdapter {
+//@EnableWebMvc
+public class DispatchRouting {
 
-    @Resource
-    private RealPathSetter holder;
-
-    @Resource
-    private ConfigFactory configFactory;
-
-    /**
-     * 配置静态访问资源
-     */
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler(Patterns.resourcePathPatterns)
-                .addResourceLocations(Patterns.resourceLocations);
-        super.addResourceHandlers(registry);
+    @Bean
+    public RealPathSetter getRealPathSetter() {
+        return new RealPathSetter();
     }
 
-    /**
-     * 重定向
-     */
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController(configFactory.getFilter()).setViewName(Patterns.interceptorPath);
-        super.addViewControllers(registry);
+    @Bean
+    public RequestMappingHandlerMapping requestMappingHandlerMapping() {
+        RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
+        mapping.setInterceptors(getRealPathSetter());
+        return mapping;
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(holder);
-        super.addInterceptors(registry);
+    @Bean
+    public ParameterizableViewController getParameterizableViewController() {
+        ParameterizableViewController controller = new ParameterizableViewController();
+        controller.setViewName("/get");
+        controller.setSupportedMethods(HttpMethod.GET.name(), HttpMethod.POST.name());
+        return controller;
     }
+
+    @Bean
+    public UrlBasedViewResolver defaultViewResolver() {
+        UrlBasedViewResolver resolver = new UrlBasedViewResolver();
+        resolver.setCache(false);
+        resolver.setViewClass(InternalResourceView.class);
+        return resolver;
+    }
+
+    @Bean
+    public SimpleUrlHandlerMapping getSimpleUrlHandlerMapping() {
+        SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
+        Map<String, ParameterizableViewController> map = new HashMap<>();
+        map.put("/v1/**", getParameterizableViewController());
+        mapping.setUrlMap(map);
+        return mapping;
+    }
+
 
 }

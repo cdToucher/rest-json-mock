@@ -46,6 +46,14 @@ public class JsonDataController {
         return getJsonData(request.getAttribute(Patterns.redirectedURI).toString());
     }
 
+    @RequestMapping(path = "**", method = {RequestMethod.POST, RequestMethod.GET}
+            , produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public String doURL(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        return getJsonData(request.getRequestURI());
+    }
+
+
     /**
      * find mappered json
      * @param path url path
